@@ -1,0 +1,44 @@
+#importações
+from fastapi import FastAPI
+from sqlalchemy import create_engine, Column, Integer, String 
+from sqlalchemy.orm import sessionmaker, declarative_base
+from pydantic import BaseModel
+
+#download:
+#pip install "fastapi [standard]"
+#pip install sqlalchemy
+#pip install pydantic
+#pip install psycopag2
+
+#instancia
+app = FastAPI()
+
+#configuração do meu DB
+database_url = "postgresql://dbvetsys_qprs_user:SjeVRVl4EYvxxT3BNAKeT3yAj9xMzBhV@dpg-d2vbv8p5pdvs73b90lqg-a.oregon-postgres.render.com/dbvetsys_qprs"
+engine = create_engine(database_url)
+SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
+Base = declarative_base()
+
+#Model
+class donos(Base):
+    __tablename__ = "donos"
+    id_dono = Column(Integer, primary_key = True, index = True)
+    nome_dono = Column(String(100))
+    cpf_dono = Column(String(11), unique = True)
+    telefone = Column(String(11))
+    endereco = Column(String(100))
+
+#model - pydantic
+class newDono (BaseModel):
+    nome_dono: str
+    cpf_dono: str
+    telefone: str
+    endereco: str
+
+ #rotas 
+@app.get("/donos")
+def get_donos():
+    db = SessionLocal() #abre uma conexão com o banco de dados
+    dono = db.query(donos).all() #faz uma seleção no banco de dados
+    db.close() #fecha a conexão
+    return{"dono" :dono }
