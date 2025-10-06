@@ -42,3 +42,49 @@ def get_donos():
     dono = db.query(donos).all() #faz uma seleção no banco de dados
     db.close() #fecha a conexão
     return{"dono" :dono }
+
+
+Modelo professor: 
+#IMPORTAÇÕES
+from fastapi import FastAPI
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base
+from pydantic import BaseModel
+#pip install "fastapi[standard]"
+#pip install sqlalchemy
+#pip install pydantic
+#pip install psycopg2
+
+#INSTÂNCIA
+app = FastAPI()
+
+#CONFIGURAÇÃO DO MEU BD
+database_url = "postgresql://dbvetsys_wnym_user:Szfm2cIl8hxo7Atgrqa2Xgt97LUYuwTk@dpg-d2vbv8vfte5s73bv0o5g-a.oregon-postgres.render.com/dbvetsys_wnym"
+engine = create_engine(database_url)
+SessionLocal = sessionmaker(autocommit=False, autoflush = False, bind=engine)
+Base = declarative_base()
+
+#MODEL
+class donos(Base):
+    __tablename__ = "donos"
+    id_dono = Column(Integer, primary_key = True, index=True)
+    nome_dono = Column(String(100))
+    cpf_dono = Column(String(11), unique=True)
+    telefone = Column(String(11))
+    endereco = Column(String(100))
+
+
+#MODEL - PYDANTIC
+class newDono(BaseModel):
+    nome_dono: str
+    cpf_dono: str
+    telefone: str
+    endereco: str
+
+#ROTAS GET, POST, PUT, DELETE
+@app.get("/donos")
+def get_donos():
+    db = SessionLocal() #abre conexão com o banco
+    dono = db.query(donos).all() #select * from donos;
+    db.close() #fecha a conexão
+    return{"dono": dono}
