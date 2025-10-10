@@ -1,47 +1,78 @@
-#importações
+# importações
 from fastapi import FastAPI
-from sqlalchemy import create_engine, Column, Integer, String 
+from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base
 from pydantic import BaseModel
 
-#download:
-#pip install "fastapi [standard]"
-#pip install sqlalchemy
-#pip install pydantic
-#pip install psycopag2
+# download:
+# pip install "fastapi [standard]"
+# pip install sqlalchemy
+# pip install pydantic
+# pip install psycopg2
 
-#instancia
+#executar o codigo:
+#fastapi dev main.py
+
+# instancia
 app = FastAPI()
 
-#configuração do meu DB
+# configuração do meu DB
 database_url = "postgresql://dbvetsys_qprs_user:SjeVRVl4EYvxxT3BNAKeT3yAj9xMzBhV@dpg-d2vbv8p5pdvs73b90lqg-a.oregon-postgres.render.com/dbvetsys_qprs"
 engine = create_engine(database_url)
-SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-#Model
+# Model
+
+
 class donos(Base):
     __tablename__ = "donos"
-    id_dono = Column(Integer, primary_key = True, index = True)
+    id_dono = Column(Integer, primary_key=True, index=True)
     nome_dono = Column(String(100))
-    cpf_dono = Column(String(11), unique = True)
+    cpf_dono = Column(String(11), unique=True)
     telefone = Column(String(11))
     endereco = Column(String(100))
 
-#model - pydantic
+# model - pydantic
+
+
 class newDono (BaseModel):
     nome_dono: str
     cpf_dono: str
     telefone: str
     endereco: str
 
- #rotas 
-@app.get("/donos")
+ # rotas
+
+@app.get("/donos/")
 def get_donos():
-    db = SessionLocal() #abre uma conexão com o banco de dados
-    dono = db.query(donos).all() #faz uma seleção no banco de dados
-    db.close() #fecha a conexão
-    return{"dono" :dono }
+    db = SessionLocal()  # abre uma conexão com o banco de dados
+    dono = db.query(donos).all() # faz uma seleção no banco de dados
+    db.close()  # fecha a conexão
+    return {"dono": dono}
+
+@app.get("/donos/{dono}")
+def get_donoBYId(dono: int):
+    db = SessionLocal()
+    dono = db.query(donos).filter(donos.id_dono == dono).first() 
+    db.close()  
+    return {"dono": dono}
+
+@app.post("donos")
+def create_dono(dono : newDono):
+    db = SessionLocal()
+    novoDono = donos(
+        nome_dono = dono.nome_dono,
+        cpf_dono = dono.cpf_dono,
+        telefone = dono.telefone,
+        endereco = dono.endereco)
+
+    db.add(novoDono)
+    db.commit()
+    db.refresh(novoDono)
+    db.close()
+    return{"dono":novoDono}
+ 
 
 
 Modelo professor: 
